@@ -3,6 +3,7 @@ use std::str::FromStr;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
+use std::process::Command;
 
 fn print_prompt() {
   let prompt_char = "%";
@@ -20,18 +21,18 @@ fn read_command() -> String {
     command
 }
 
-struct Command {
+struct RustShellCommand {
   keyword : String,
   args : Vec<String>,
 }
 
-fn tokenize_command(c : String) -> Command {
+fn tokenize_command(c : String) -> RustShellCommand {
   let mut command_split : Vec<String> = c.split_whitespace().map(|s| s.to_string()).collect();
   debug!("Split input: {:?}", command_split);
 
   match command_split.len() {
-    0 => Command { keyword : "".to_owned(), args : Vec::new()  },
-    _ => Command { keyword : command_split.remove(0), args : command_split },
+    0 => RustShellCommand { keyword : "".to_owned(), args : Vec::new()  },
+    _ => RustShellCommand { keyword : command_split.remove(0), args : command_split },
   }
 }
 
@@ -85,7 +86,31 @@ fn builtin_pwd(_ : &Vec<String>) -> i32 {
   1
 }
 
-fn process_command(c : Command) -> i32 {
+fn execute_binary(c : &RustShellCommand) -> i32 {
+  let output = Command::new(&c.keyword)
+                .args(&c.args)
+                .output();
+
+  println!("{:?}", &output);
+  match output {
+    Ok( o ) => {
+      println!("OK!");
+      println!("After match: {:?}", String::from_utf8_lossy(&o.stdout));
+
+      io::stdout().flush().unwrap();
+      //output.unwrap().status.code().unwrap()
+      0
+    },
+    Err(_) => {
+      println!("Err!");
+      1
+    },
+  }
+
+
+}
+
+fn process_command(c : RustShellCommand) -> i32 {
   match Builtin::from_str(&c.keyword) {
     Ok(Builtin::Echo) => builtin_echo(&c.args),
     Ok(Builtin::History) => builtin_history(&c.args),
@@ -94,10 +119,7 @@ fn process_command(c : Command) -> i32 {
     _ => {
       match *&c.keyword.is_empty() {
         true => 0,
-        false => {
-          println!("{}: command not found", &c.keyword);
-          1
-        },
+        false => execute_binary(&c),
       }
     },
   }
