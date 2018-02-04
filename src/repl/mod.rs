@@ -22,7 +22,6 @@ pub fn read_command() -> String {
     command
 }
 
-
 // TODO: Execute trait? Generic function?
 // TODO: Prompt trait?
 
