@@ -29,16 +29,10 @@ impl Repl for RustShellCommand {
         tokenize_command(command)
     }
 
-    // TODO: Think about how to make this work in a state machine way.
-    // Do I just want to save the exit code, and stdout/stderr into a history table?
     fn evaluate(&self) -> Result<String, String> {
         process_command(self)
     }
 
-
-    // TODO: Output should be printed from the user here
-    // If I rethink how evaluate works, maybe I just need to print the last command run from cache,
-    // or maybe I can stream the output somehow?
     fn print(output: Result<String, String>) -> Option<String> {
         println!("{:?}", output);
         match output {
@@ -48,7 +42,6 @@ impl Repl for RustShellCommand {
     }
 
     fn loop_interactive() {
-//        unimplemented!()
         loop {
             print_prompt();
             Self::print(Self::evaluate(&Self::read()));
@@ -101,17 +94,9 @@ fn execute_binary(c : &RustShellCommand) -> Result<String, String> {
     // if Result<Output>, then I want Ok(Output.status)?
     match output.status.success() {
         true => {
-            //println!("OK!");
-            //println!("After match: {:?}", String::from_utf8_lossy(&o.stdout));
-
-            //io::stdout().flush().unwrap();
-            //output.unwrap().status.code().unwrap()
-//            println!("Inner debug: {:?}", o);
             Ok(String::from_utf8_lossy(&output.stdout).to_ascii_lowercase())
         },
         false => {
-            //println!("Err!");
- //           println!("Inner debug: {:?}", o);
             Err(String::from_utf8_lossy(&output.stderr).to_ascii_lowercase())
         },
     }
