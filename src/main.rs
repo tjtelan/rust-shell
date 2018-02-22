@@ -1,21 +1,15 @@
-mod repl;
-use repl::*;
-mod unix_shell;
-use unix_shell::*;
-
 #[macro_use]
 extern crate log;
 extern crate env_logger;
 
+pub mod repl;
+pub mod unix_shell;
+use repl::Repl;
+
+
 fn main() {
-  env_logger::init().unwrap();
+    env_logger::init().unwrap();
 
-  loop {
-    print_prompt();
-
-    let exit_code = process_command(tokenize_command(read_command()));
-
-    debug!("Exit code : {:?}", exit_code );
-  }
+    // TODO: Check if this is an interactive session before entering loop_interactive()
+    unix_shell::RustShellCommand::loop_interactive();
 }
-

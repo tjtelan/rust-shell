@@ -1,5 +1,5 @@
 [package]
-name = "rust_shell"
+name = "rust-shell"
 version = "0.2.0"
 authors = ["T.J. Telan <tj@tjtelan.com>"]
 
