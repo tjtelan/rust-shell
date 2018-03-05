@@ -47,12 +47,12 @@ impl Repl for RustShellCommand {
         //println!("Print {:?}", output);
         match output {
             Ok(o) => {
-                println!("{}", String::from_utf8(o.stdout).unwrap());
-                eprintln!("{}", String::from_utf8(o.stderr).unwrap());
+                if !o.stderr.is_empty() { eprintln!("{}", String::from_utf8(o.stderr).unwrap()); }
+                if !o.stdout.is_empty() { println!("{}", String::from_utf8(o.stdout).unwrap()); }
             },
             Err(e) => {
-                println!("{}", String::from_utf8(e.stdout).unwrap());
-                eprintln!("{}", String::from_utf8(e.stderr).unwrap());
+                if !e.stderr.is_empty() { eprintln!("{}", String::from_utf8(e.stderr).unwrap()); }
+                if !e.stdout.is_empty() { println!("{}", String::from_utf8(e.stdout).unwrap()); }
             },
         }
     }
@@ -90,45 +90,49 @@ impl FromStr for RustShellBuiltin {
 }
 
 fn execute_binary(c : &RustShellCommand) -> Result<RustShellOutput, RustShellOutput> {
+    // TODO: Maybe pipe stdout and stderr so print() will handle all i/o
+    // Figure out how to make vim continue working
+    //  .stdout(Stdio::piped())
+    //  .stderr(Stdio::piped())
     let child = Command::new(&c.keyword)
         .args(&c.args)
         .spawn();
 
     match child {
-		Ok(process) => {
-			let output = process.wait_with_output();
+    Ok(process) => {
+      let output = process.wait_with_output();
 
-		    match output {
-		        Ok(x) => {
-		            Ok(RustShellOutput {
-		                code: x.status.code(),
-		                stdout: x.stdout,
-		                stderr: x.stderr,
-		            })
-		        },
+        match output {
+            Ok(x) => {
+                Ok(RustShellOutput {
+                    code: x.status.code(),
+                    stdout: x.stdout,
+                    stderr: x.stderr,
+                })
+            },
 
-                // TODO: Need to write a test that hits this condition, but I don't know how...
-		        Err(_x) => {
-		            Err(RustShellOutput {
-		                code: Some(1),
-		                stdout: String::from("").into_bytes(),
-		                stderr: String::from("DEBUG: Command error").into_bytes(),
-		            })
-		        },
-		    }
+            // TODO: Need to write a test that hits this condition, but I don't know how...
+            Err(_x) => {
+                Err(RustShellOutput {
+                    code: Some(1),
+                    stdout: String::from("").into_bytes(),
+                    stderr: String::from("DEBUG: Command error").into_bytes(),
+                })
+            },
+        }
 
-		},
+    },
 
         // TODO: Less hardcoding of binary name here
-		Err(e) => {
+    Err(e) => {
             eprintln!("DEBUG: Exit code: {:?}", e.raw_os_error());
-			Err(RustShellOutput {
-				code: e.raw_os_error(),
-				stdout: String::from("").into_bytes(),
-				stderr: String::from(format!("rush: {}: command not found", &c.keyword)).into_bytes(),
-			})
-		},
-	}
+      Err(RustShellOutput {
+        code: e.raw_os_error(),
+        stdout: String::from("").into_bytes(),
+        stderr: String::from(format!("rush: {}: command not found", &c.keyword)).into_bytes(),
+      })
+    },
+  }
 }
 
 fn builtin_echo(args : &Vec<String>) -> Result<RustShellOutput, RustShellOutput> {
@@ -204,5 +208,12 @@ pub fn process_command(c : &RustShellCommand) -> Result<RustShellOutput, RustShe
                 false => execute_binary(&c),
             }
         },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
     }
 }

@@ -7,10 +7,3 @@ pub trait Repl {
     fn print(output: Result<Self::ReplResult, Self::ReplError>);
     fn loop_interactive();
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-    }
-}
