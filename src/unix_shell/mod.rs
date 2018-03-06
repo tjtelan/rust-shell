@@ -1,4 +1,5 @@
 use std::io::{self};
+use std::fmt;
 
 pub use repl::Repl;
 
@@ -7,10 +8,17 @@ pub mod builtin;
 pub mod util;
 use unix_shell::util::*;
 
+
 #[derive(Debug)]
 pub struct RustShellCommand {
     pub keyword : String,
     pub args : Vec<String>,
+}
+
+impl fmt::Display for RustShellCommand {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} {}", self.keyword, self.args.join(" "))
+    }
 }
 
 #[derive(Debug)]
@@ -34,8 +42,16 @@ impl Repl for RustShellCommand {
         tokenize_command(command)
     }
 
+    // TODO:Write to history here
     fn evaluate(&self) -> Result<RustShellOutput, RustShellOutput> {
-        process_command(self)
+        match process_command(self) {
+            Ok(o) => {
+                append_to_history(format!("{}", self));
+                Ok(o)
+            },
+
+            Err(o) => Err(o)
+        }
     }
 
     fn print(output: Result<RustShellOutput, RustShellOutput>) {

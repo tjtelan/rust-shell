@@ -39,6 +39,7 @@ pub fn builtin_history(_ : &Vec<String>) -> Result<RustShellOutput, RustShellOut
     })
 }
 
+// FIXME: This doesn't actually do anything. Lol.
 pub fn builtin_cd(args : &Vec<String>) -> Result<RustShellOutput, RustShellOutput> {
     warn!("Not yet implemented");
     match args.len() {

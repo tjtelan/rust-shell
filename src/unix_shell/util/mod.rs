@@ -4,6 +4,16 @@ use std::io::{self,Write};
 use unix_shell::builtin::*;
 use std::str::FromStr;
 use std::process::{Command};
+use std::fs::{OpenOptions};
+
+// TODO: Figure out an intentional error code
+pub fn append_to_history(c: String) {
+    let file = OpenOptions::new().append(true).create(true).open("rush_history");
+    match file {
+        Ok(_) => {writeln!(file.unwrap(), "{}", format!("{}", c))},
+        _ => Err(io::Error::from_raw_os_error(1))
+    };
+}
 
 pub fn tokenize_command(c : String) -> RustShellCommand {
     let mut command_split : Vec<String> = c.split_whitespace().map(|s| s.to_string()).collect();
@@ -15,6 +25,7 @@ pub fn tokenize_command(c : String) -> RustShellCommand {
     }
 }
 
+// TODO: Read prompt from an environment variable
 pub fn print_prompt() {
     let prompt_char = "%";
 
