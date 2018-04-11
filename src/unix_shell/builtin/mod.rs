@@ -1,6 +1,10 @@
 use super::RustShellOutput;
 use std::str::FromStr;
 
+use std::fs::File;
+use std::io::BufReader;
+use std::io::prelude::*;
+
 pub enum RustShellBuiltin {
     Echo,
     History,
@@ -30,12 +34,23 @@ pub fn builtin_echo(args : &Vec<String>) -> Result<RustShellOutput, RustShellOut
     })
 }
 
+// BUG: If rush_history doesn't exist yet, runtime panic.
 pub fn builtin_history(_ : &Vec<String>) -> Result<RustShellOutput, RustShellOutput> {
-    warn!("Not yet implemented");
-    Err(RustShellOutput {
-        code: Some(1),
+
+    let f = File::open("rush_history").expect("rush_history not found");
+    let reader = BufReader::new(f);
+    let lines = reader.lines();
+
+    let o = lines
+        .enumerate()
+        .map(|x| format!("{:3} {}", (x.0 + 1), x.1.unwrap()));
+
+    println!("{:?}", o);
+
+    Ok(RustShellOutput {
+        code: Some(0),
         stdout: String::from("").into_bytes(),
-        stderr: String::from("Not yet implemented").into_bytes(),
+        stderr: String::from("").into_bytes(),
     })
 }
 
